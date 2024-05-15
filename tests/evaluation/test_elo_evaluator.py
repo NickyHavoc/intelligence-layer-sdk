@@ -23,8 +23,8 @@ from intelligence_layer.evaluation import (
     RunOverview,
     SuccessfulExampleOutput,
 )
-from intelligence_layer.evaluation.evaluation.elo_evaluator import EloEvaluationLogic
-from intelligence_layer.evaluation.evaluation.elo_graders.elo_grader import (
+from intelligence_layer.evaluation.evaluation.elo_evaluator import (
+    EloEvaluationLogic,
     Match,
     Matches,
 )
@@ -32,23 +32,6 @@ from intelligence_layer.evaluation.evaluation.evaluator import EvaluationLogic
 from intelligence_layer.examples import SingleChunkQaInput, SingleChunkQaOutput
 
 load_dotenv()
-
-
-# class DummyEloQaGrader(EloQaGrader):
-#    def grade(
-#        self,
-#        first: SuccessfulExampleOutput[SingleChunkQaOutput],
-#        second: SuccessfulExampleOutput[SingleChunkQaOutput],
-#        example: Example[SingleChunkQaInput, SingleChunkQaOutput],
-#    ) -> MatchOutcome:
-#        _ = example
-#        if first.run_id < second.run_id:
-#            return MatchOutcome.A_WINS
-#        elif first.run_id > second.run_id:
-#            return MatchOutcome.B_WINS
-#        else:
-#            return MatchOutcome.DRAW
-#
 
 
 class DummyEloQaEvalLogic(
@@ -81,11 +64,6 @@ class DummyEloQaEvalLogic(
 @fixture
 def model(client: AlephAlphaClientProtocol) -> ControlModel:
     return LuminousControlModel(client=client, name="luminous-base-control")
-
-
-# @fixture
-# def dummy_elo_qa_grader(model: ControlModel) -> DummyEloQaGrader:
-#    return DummyEloQaGrader(model=model)
 
 
 @fixture

@@ -1,15 +1,24 @@
 import math
-from typing import Mapping, Sequence, final
+from typing import Mapping, Sequence
+
 from aleph_alpha_client import Prompt
 from liquid import Template
+
 from intelligence_layer.core.detect_language import Language
 from intelligence_layer.core.model import CompleteInput, CompleteOutput, ControlModel
 from intelligence_layer.core.tracer.tracer import NoOpTracer, TaskSpan, Tracer
 from intelligence_layer.evaluation.aggregation.elo import MatchOutcome
 from intelligence_layer.evaluation.dataset.domain import Example
-from intelligence_layer.evaluation.evaluation.elo_evaluator import EloEvaluationLogic, EloGradingInput
+from intelligence_layer.evaluation.evaluation.elo_evaluator import (
+    EloEvaluationLogic,
+    EloGradingInput,
+)
 from intelligence_layer.evaluation.run.domain import SuccessfulExampleOutput
-from intelligence_layer.examples.qa.single_chunk_qa import QA_INSTRUCTIONS, SingleChunkQaInput, SingleChunkQaOutput
+from intelligence_layer.examples.qa.single_chunk_qa import (
+    QA_INSTRUCTIONS,
+    SingleChunkQaInput,
+    SingleChunkQaOutput,
+)
 
 
 class EloQaEvaluationLogic(
@@ -133,5 +142,3 @@ Response: Answer """
             complete_output.completions[0].log_probs
         )
         return categorize_value(normalized_probability)
-    
-    
