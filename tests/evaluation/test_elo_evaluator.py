@@ -1,4 +1,3 @@
-from itertools import combinations
 from typing import Sequence, Tuple
 
 from dotenv import load_dotenv
@@ -12,6 +11,7 @@ from intelligence_layer.core import (
     TextChunk,
     utc_now,
 )
+from intelligence_layer.core.tracer.tracer import NoOpTracer, Tracer
 from intelligence_layer.evaluation import (
     Evaluator,
     Example,
@@ -28,15 +28,41 @@ from intelligence_layer.evaluation.evaluation.elo_graders.elo_grader import (
     Match,
     Matches,
 )
-from intelligence_layer.evaluation.evaluation.elo_graders.elo_qa_grader import (
-    EloQaGrader,
-)
+from intelligence_layer.evaluation.evaluation.evaluator import EvaluationLogic
 from intelligence_layer.examples import SingleChunkQaInput, SingleChunkQaOutput
 
 load_dotenv()
 
 
-class DummyEloQaGrader(EloQaGrader):
+# class DummyEloQaGrader(EloQaGrader):
+#    def grade(
+#        self,
+#        first: SuccessfulExampleOutput[SingleChunkQaOutput],
+#        second: SuccessfulExampleOutput[SingleChunkQaOutput],
+#        example: Example[SingleChunkQaInput, SingleChunkQaOutput],
+#    ) -> MatchOutcome:
+#        _ = example
+#        if first.run_id < second.run_id:
+#            return MatchOutcome.A_WINS
+#        elif first.run_id > second.run_id:
+#            return MatchOutcome.B_WINS
+#        else:
+#            return MatchOutcome.DRAW
+#
+
+
+class DummyEloQaEvalLogic(
+    EloEvaluationLogic[SingleChunkQaInput, SingleChunkQaOutput, SingleChunkQaOutput]
+):
+    def __init__(
+        self,
+        model: ControlModel,
+        tracer: Tracer = NoOpTracer(),
+    ):
+        super().__init__()
+        self._model = model
+        self.tracer = tracer
+
     def grade(
         self,
         first: SuccessfulExampleOutput[SingleChunkQaOutput],
@@ -52,35 +78,14 @@ class DummyEloQaGrader(EloQaGrader):
             return MatchOutcome.DRAW
 
 
-class DummyEloQaEvalLogic(
-    EloEvaluationLogic[SingleChunkQaInput, SingleChunkQaOutput, SingleChunkQaOutput]
-):
-    def do_evaluate(
-        self,
-        example: Example[SingleChunkQaInput, SingleChunkQaOutput],
-        *output: SuccessfulExampleOutput[SingleChunkQaOutput],
-    ) -> Matches:
-        pairs = combinations(output, 2)
-        return Matches(
-            matches=[
-                Match(
-                    player_a=first.run_id,
-                    player_b=second.run_id,
-                    outcome=self._grader.grade(first, second, example),
-                )
-                for [first, second] in pairs
-            ]
-        )
-
-
 @fixture
 def model(client: AlephAlphaClientProtocol) -> ControlModel:
     return LuminousControlModel(client=client, name="luminous-base-control")
 
 
-@fixture
-def dummy_elo_qa_grader(model: ControlModel) -> DummyEloQaGrader:
-    return DummyEloQaGrader(model=model)
+# @fixture
+# def dummy_elo_qa_grader(model: ControlModel) -> DummyEloQaGrader:
+#    return DummyEloQaGrader(model=model)
 
 
 @fixture
@@ -99,10 +104,8 @@ def in_memory_evaluation_repository() -> InMemoryEvaluationRepository:
 
 
 @fixture
-def dummy_eval_logic(
-    dummy_elo_qa_grader: EloQaGrader,
-) -> DummyEloQaEvalLogic:
-    return DummyEloQaEvalLogic(grader=dummy_elo_qa_grader)
+def dummy_eval_logic(model: ControlModel) -> DummyEloQaEvalLogic:
+    return DummyEloQaEvalLogic(model=model)
 
 
 @fixture
@@ -110,8 +113,8 @@ def elo_evaluator(
     in_memory_dataset_repository: InMemoryDatasetRepository,
     in_memory_run_repository: InMemoryRunRepository,
     in_memory_evaluation_repository: InMemoryEvaluationRepository,
-    dummy_eval_logic: EloEvaluationLogic[
-        SingleChunkQaInput, SingleChunkQaOutput, SingleChunkQaOutput
+    dummy_eval_logic: EvaluationLogic[
+        SingleChunkQaInput, SingleChunkQaOutput, SingleChunkQaOutput, Matches
     ],
 ) -> Evaluator[SingleChunkQaInput, SingleChunkQaOutput, SingleChunkQaOutput, Matches]:
     return Evaluator(
@@ -191,7 +194,7 @@ def qa_setup(
     return run_ids, dataset_id
 
 
-def test_evauluate_runs_creates_correct_matches_for_elo_qa_eval(
+def test_evaluate_runs_creates_correct_matches_for_elo_qa_eval(
     qa_setup: Tuple[Sequence[str], str],
     elo_evaluator: Evaluator[
         SingleChunkQaInput, SingleChunkQaOutput, SingleChunkQaOutput, Matches
