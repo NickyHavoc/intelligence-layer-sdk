@@ -8,6 +8,58 @@ from pydantic import BaseModel
 from intelligence_layer.evaluation import ComparisonEvaluation, MatchOutcome
 from intelligence_layer.evaluation.aggregation.accumulator import MeanAccumulator
 from intelligence_layer.evaluation.aggregation.aggregator import AggregationLogic
+from intelligence_layer.evaluation.evaluation.evaluator.elo_evaluator import Matches
+
+
+class PlayerScore(BaseModel):
+    elo: float
+    elo_standard_error: float
+    win_rate: float
+    num_matches: int
+
+
+class AggregatedComparison(BaseModel):
+    scores: Mapping[str, PlayerScore]
+
+
+class EloAggregationAdapter:
+    @staticmethod
+    def aggregate(evaluations: Iterable[ComparisonEvaluation]) -> AggregatedComparison:
+        evaluations = list(evaluations)
+        player_counter = Counter(
+            player
+            for comparison_evaluation in evaluations
+            for player in [
+                comparison_evaluation.first_player,
+                comparison_evaluation.second_player,
+            ]
+        )
+
+        player_counts = dict(player_counter)
+        players = player_counts.keys()
+
+        accumulators = {p: MeanAccumulator() for p in players}
+        for _ in range(100):
+            elo_calc = EloCalculator(players)
+            random.shuffle(evaluations)
+            elo_calc.calculate(evaluations)
+            for p in players:
+                accumulators[p].add(elo_calc.ratings[p])
+
+        win_rate_calc = WinRateCalculator(players)
+        win_rate = win_rate_calc.calculate(evaluations)
+
+        return AggregatedComparison(
+            scores={
+                p: PlayerScore(
+                    elo=acc.extract(),
+                    elo_standard_error=acc.standard_error(),
+                    win_rate=win_rate[p],
+                    num_matches=player_counts[p],
+                )
+                for p, acc in accumulators.items()
+            },
+        )
 
 
 class EloCalculator:
@@ -48,13 +100,15 @@ class EloCalculator:
             actual_b - expected_win_rate_b
         )
 
-    def calculate(self, matches: Sequence[tuple[str, str, MatchOutcome]]) -> None:
-        for a, b, o in matches:
-            dif_a, dif_b = self._calc_difs(o, a, b)
-            self.ratings[a] += dif_a
-            self.ratings[b] += dif_b
-            self._match_counts[a] += 1
-            self._match_counts[b] += 1
+    def calculate(self, matches: Sequence[ComparisonEvaluation]) -> None:
+        for match in matches:
+            dif_a, dif_b = self._calc_difs(
+                match.outcome, match.first_player, match.second_player
+            )
+            self.ratings[match.first_player] += dif_a
+            self.ratings[match.second_player] += dif_b
+            self._match_counts[match.first_player] += 1
+            self._match_counts[match.second_player] += 1
 
 
 class WinRateCalculator:
@@ -62,14 +116,12 @@ class WinRateCalculator:
         self.match_count: dict[str, int] = {p: 0 for p in players}
         self.win_count: dict[str, float] = {p: 0 for p in players}
 
-    def calculate(
-        self, matches: Sequence[tuple[str, str, MatchOutcome]]
-    ) -> Mapping[str, float]:
-        for a, b, o in matches:
-            self.match_count[a] += 1
-            self.match_count[b] += 1
-            self.win_count[a] += o.payoff[0]
-            self.win_count[b] += o.payoff[1]
+    def calculate(self, matches: Sequence[ComparisonEvaluation]) -> Mapping[str, float]:
+        for match in matches:
+            self.match_count[match.first_player] += 1
+            self.match_count[match.second_player] += 1
+            self.win_count[match.first_player] += match.outcome.payoff[0]
+            self.win_count[match.second_player] += match.outcome.payoff[1]
 
         return {
             player: self.win_count[player] / match_count
@@ -77,56 +129,20 @@ class WinRateCalculator:
         }
 
 
-class PlayerScore(BaseModel):
-    elo: float
-    elo_standard_error: float
-    win_rate: float
-    num_matches: int
-
-
-class AggregatedComparison(BaseModel):
-    scores: Mapping[str, PlayerScore]
-
-
-class ComparisonAggregationLogic(
+class ComparisonEvaluationAggregationLogic(
     AggregationLogic[ComparisonEvaluation, AggregatedComparison]
 ):
     def aggregate(
         self, evaluations: Iterable[ComparisonEvaluation]
     ) -> AggregatedComparison:
-        flattened_evaluations = [
-            (
-                evaluation.first_player,
-                evaluation.second_player,
-                evaluation.outcome,
-            )
-            for evaluation in evaluations
+        return EloAggregationAdapter.aggregate(evaluations)
+
+
+class MatchesAggregationLogic(AggregationLogic[Matches, AggregatedComparison]):
+    def aggregate(self, evaluations: Iterable[Matches]) -> AggregatedComparison:
+        flattened_matches = [
+            comparison_evaluation
+            for match in evaluations
+            for comparison_evaluation in match.comparison_evaluations
         ]
-        player_counter = Counter(
-            player for match in flattened_evaluations for player in [match[0], match[1]]
-        )
-        player_counts = dict(player_counter)
-        players = player_counts.keys()
-
-        accumulators = {p: MeanAccumulator() for p in players}
-        for _ in range(100):
-            elo_calc = EloCalculator(players)
-            random.shuffle(flattened_evaluations)
-            elo_calc.calculate(flattened_evaluations)
-            for p in players:
-                accumulators[p].add(elo_calc.ratings[p])
-
-        win_rate_calc = WinRateCalculator(players)
-        win_rate = win_rate_calc.calculate(flattened_evaluations)
-
-        return AggregatedComparison(
-            scores={
-                p: PlayerScore(
-                    elo=acc.extract(),
-                    elo_standard_error=acc.standard_error(),
-                    win_rate=win_rate[p],
-                    num_matches=player_counts[p],
-                )
-                for p, acc in accumulators.items()
-            },
-        )
+        return EloAggregationAdapter.aggregate(flattened_matches)

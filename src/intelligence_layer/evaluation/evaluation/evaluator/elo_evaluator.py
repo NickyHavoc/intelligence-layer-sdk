@@ -44,7 +44,7 @@ class ComparisonEvaluation(BaseModel):
 
 
 class Matches(BaseModel):
-    matches: Sequence[ComparisonEvaluation]
+    comparison_evaluations: Sequence[ComparisonEvaluation]
 
 
 class EloGradingInput(BaseModel):
@@ -70,7 +70,7 @@ class EloEvaluationLogic(EvaluationLogic[Input, Output, ExpectedOutput, Matches]
     ) -> Matches:
         pairs = combinations(output, 2)
         return Matches(
-            matches=[
+            comparison_evaluations=[
                 ComparisonEvaluation(
                     first_player=player_a.run_id,
                     second_player=player_b.run_id,

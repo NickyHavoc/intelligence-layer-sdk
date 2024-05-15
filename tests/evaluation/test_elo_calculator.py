@@ -5,6 +5,9 @@ from pydantic import BaseModel
 from pytest import fixture
 
 from intelligence_layer.evaluation import EloCalculator, MatchOutcome, WinRateCalculator
+from intelligence_layer.evaluation.evaluation.evaluator.elo_evaluator import (
+    ComparisonEvaluation,
+)
 
 
 @fixture
@@ -33,7 +36,7 @@ def test_match_outcome_serializes() -> None:
 
 
 def test_elo_calculator_works(
-    players: Sequence[str], matches: Sequence[tuple[str, str, MatchOutcome]]
+    players: Sequence[str], matches: Sequence[ComparisonEvaluation]
 ) -> None:
     elo_calculator = EloCalculator(players)
     elo_calculator.calculate(matches)
@@ -52,7 +55,7 @@ def test_elo_calculator_works(
 
 
 def test_win_rate_calculator_works(
-    players: Sequence[str], matches: Sequence[tuple[str, str, MatchOutcome]]
+    players: Sequence[str], matches: Sequence[ComparisonEvaluation]
 ) -> None:
     win_rate_calculator = WinRateCalculator(players)
     scores = win_rate_calculator.calculate(matches)

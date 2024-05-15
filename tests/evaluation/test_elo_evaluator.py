@@ -183,7 +183,7 @@ def test_evaluate_runs_creates_correct_matches_for_elo_qa_eval(
         0
     ].evaluation.result
     assert isinstance(eval_result, Matches)
-    matches = eval_result.matches
+    matches = eval_result.comparison_evaluations
 
     for match in matches:
         assert isinstance(match, ComparisonEvaluation)

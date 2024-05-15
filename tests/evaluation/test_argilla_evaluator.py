@@ -16,8 +16,8 @@ from intelligence_layer.evaluation import (
     ArgillaEvaluationLogic,
     ArgillaEvaluator,
     AsyncInMemoryEvaluationRepository,
-    ComparisonAggregationLogic,
     ComparisonEvaluation,
+    ComparisonEvaluationAggregationLogic,
     DatasetRepository,
     Example,
     InMemoryDatasetRepository,
@@ -327,7 +327,7 @@ def test_argilla_evaluator_abort_on_error_works(
 
 
 def test_argilla_aggregation_logic_works() -> None:
-    argilla_aggregation_logic = ComparisonAggregationLogic()
+    argilla_aggregation_logic = ComparisonEvaluationAggregationLogic()
     evaluations = (
         ComparisonEvaluation(
             first_player="player_1",

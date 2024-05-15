@@ -7,7 +7,7 @@ from .aggregation.aggregator import Aggregator as Aggregator
 from .aggregation.domain import AggregatedEvaluation as AggregatedEvaluation
 from .aggregation.domain import AggregationOverview as AggregationOverview
 from .aggregation.elo_aggregation import (
-    ComparisonAggregationLogic as ComparisonAggregationLogic,
+    ComparisonEvaluationAggregationLogic as ComparisonEvaluationAggregationLogic,
 )
 from .aggregation.elo_aggregation import EloCalculator as EloCalculator
 from .aggregation.elo_aggregation import WinRateCalculator as WinRateCalculator
