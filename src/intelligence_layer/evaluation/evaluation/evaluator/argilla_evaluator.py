@@ -14,10 +14,7 @@ from intelligence_layer.connectors.argilla.argilla_client import (
     RecordData,
 )
 from intelligence_layer.core import CompleteOutput, Input, InstructInput, Output
-from intelligence_layer.evaluation.aggregation.elo import (
-    ComparisonEvaluation,
-    MatchOutcome,
-)
+from intelligence_layer.evaluation import ComparisonEvaluation, MatchOutcome
 from intelligence_layer.evaluation.dataset.dataset_repository import DatasetRepository
 from intelligence_layer.evaluation.dataset.domain import Example, ExpectedOutput
 from intelligence_layer.evaluation.evaluation.domain import (
@@ -303,9 +300,9 @@ class InstructComparisonArgillaEvaluationLogic(
         self, argilla_evaluation: ArgillaEvaluation
     ) -> ComparisonEvaluation:
         return ComparisonEvaluation(
-            first=argilla_evaluation.metadata["first"],
-            second=argilla_evaluation.metadata["second"],
-            winner=MatchOutcome.from_rank_literal(
+            first_player=argilla_evaluation.metadata["first"],
+            second_player=argilla_evaluation.metadata["second"],
+            outcome=MatchOutcome.from_rank_literal(
                 int(argilla_evaluation.responses["winner"])
             ),
         )

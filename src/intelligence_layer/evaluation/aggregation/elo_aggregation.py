@@ -1,39 +1,13 @@
 import random
 from collections import Counter, defaultdict
-from enum import Enum
 from typing import Iterable, Mapping, Sequence
 
 import numpy as np
 from pydantic import BaseModel
 
+from intelligence_layer.evaluation import ComparisonEvaluation, MatchOutcome
 from intelligence_layer.evaluation.aggregation.accumulator import MeanAccumulator
 from intelligence_layer.evaluation.aggregation.aggregator import AggregationLogic
-
-
-class MatchOutcome(str, Enum):
-    A_WINS = "a_wins"
-    DRAW = "draw"
-    B_WINS = "b_wins"
-
-    @property
-    def payoff(self) -> tuple[float, float]:
-        if self == self.A_WINS:
-            return (1, 0)
-        if self == self.DRAW:
-            return (0.5, 0.5)
-        return (0, 1)
-
-    @staticmethod
-    def from_rank_literal(rank: int) -> "MatchOutcome":
-        match rank:
-            case 1:
-                return MatchOutcome.A_WINS
-            case 2:
-                return MatchOutcome.B_WINS
-            case 3:
-                return MatchOutcome.DRAW
-            case _:
-                raise ValueError(f"Got unexpected rank {rank}")
 
 
 class EloCalculator:
@@ -114,12 +88,6 @@ class AggregatedComparison(BaseModel):
     scores: Mapping[str, PlayerScore]
 
 
-class ComparisonEvaluation(BaseModel):
-    first: str
-    second: str
-    winner: MatchOutcome
-
-
 class ComparisonAggregationLogic(
     AggregationLogic[ComparisonEvaluation, AggregatedComparison]
 ):
@@ -128,9 +96,9 @@ class ComparisonAggregationLogic(
     ) -> AggregatedComparison:
         flattened_evaluations = [
             (
-                evaluation.first,
-                evaluation.second,
-                evaluation.winner,
+                evaluation.first_player,
+                evaluation.second_player,
+                evaluation.outcome,
             )
             for evaluation in evaluations
         ]

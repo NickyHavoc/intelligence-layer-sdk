@@ -7,9 +7,9 @@ from liquid import Template
 from intelligence_layer.core.detect_language import Language
 from intelligence_layer.core.model import CompleteInput, CompleteOutput, ControlModel
 from intelligence_layer.core.tracer.tracer import NoOpTracer, TaskSpan, Tracer
-from intelligence_layer.evaluation.aggregation.elo import MatchOutcome
+from intelligence_layer.evaluation import MatchOutcome
 from intelligence_layer.evaluation.dataset.domain import Example
-from intelligence_layer.evaluation.evaluation.elo_evaluator import (
+from intelligence_layer.evaluation.evaluation.evaluator.elo_evaluator import (
     EloEvaluationLogic,
     EloGradingInput,
 )

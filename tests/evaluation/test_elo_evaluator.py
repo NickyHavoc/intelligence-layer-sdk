@@ -13,22 +13,20 @@ from intelligence_layer.core import (
 )
 from intelligence_layer.core.tracer.tracer import NoOpTracer, Tracer
 from intelligence_layer.evaluation import (
+    ComparisonEvaluation,
+    EloEvaluationLogic,
+    EvaluationLogic,
     Evaluator,
     Example,
     ExampleOutput,
     InMemoryDatasetRepository,
     InMemoryEvaluationRepository,
     InMemoryRunRepository,
+    Matches,
     MatchOutcome,
     RunOverview,
     SuccessfulExampleOutput,
 )
-from intelligence_layer.evaluation.evaluation.elo_evaluator import (
-    EloEvaluationLogic,
-    Match,
-    Matches,
-)
-from intelligence_layer.evaluation.evaluation.evaluator import EvaluationLogic
 from intelligence_layer.examples import SingleChunkQaInput, SingleChunkQaOutput
 
 load_dotenv()
@@ -188,8 +186,8 @@ def test_evaluate_runs_creates_correct_matches_for_elo_qa_eval(
     matches = eval_result.matches
 
     for match in matches:
-        assert isinstance(match, Match)
-        if match.player_a < match.player_b:
+        assert isinstance(match, ComparisonEvaluation)
+        if match.first_player < match.second_player:
             assert match.outcome == MatchOutcome.A_WINS
-        elif match.player_a > match.player_b:
+        elif match.first_player > match.second_player:
             assert match.outcome == MatchOutcome.B_WINS
