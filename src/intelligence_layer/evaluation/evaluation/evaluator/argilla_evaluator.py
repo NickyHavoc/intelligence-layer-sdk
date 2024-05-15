@@ -14,7 +14,6 @@ from intelligence_layer.connectors.argilla.argilla_client import (
     RecordData,
 )
 from intelligence_layer.core import CompleteOutput, Input, InstructInput, Output
-from intelligence_layer.evaluation import ComparisonEvaluation, MatchOutcome
 from intelligence_layer.evaluation.dataset.dataset_repository import DatasetRepository
 from intelligence_layer.evaluation.dataset.domain import Example, ExpectedOutput
 from intelligence_layer.evaluation.evaluation.domain import (
@@ -30,6 +29,10 @@ from intelligence_layer.evaluation.evaluation.evaluator.async_evaluator import (
 )
 from intelligence_layer.evaluation.evaluation.evaluator.base_evaluator import (
     EvaluationLogicBase,
+)
+from intelligence_layer.evaluation.evaluation.evaluator.elo_evaluator import (
+    ComparisonEvaluation,
+    MatchOutcome,
 )
 from intelligence_layer.evaluation.run.domain import SuccessfulExampleOutput
 from intelligence_layer.evaluation.run.run_repository import RunRepository

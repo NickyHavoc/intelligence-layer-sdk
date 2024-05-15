@@ -6,8 +6,8 @@ from typing import Sequence, final
 from pydantic import BaseModel
 
 from intelligence_layer.core import Input, Output
-from intelligence_layer.evaluation import EvaluationLogic
 from intelligence_layer.evaluation.dataset.domain import Example, ExpectedOutput
+from intelligence_layer.evaluation.evaluation.evaluator.evaluator import EvaluationLogic
 from intelligence_layer.evaluation.run.domain import SuccessfulExampleOutput
 
 

@@ -5,10 +5,13 @@ from typing import Iterable, Mapping, Sequence
 import numpy as np
 from pydantic import BaseModel
 
-from intelligence_layer.evaluation import ComparisonEvaluation, MatchOutcome
 from intelligence_layer.evaluation.aggregation.accumulator import MeanAccumulator
 from intelligence_layer.evaluation.aggregation.aggregator import AggregationLogic
-from intelligence_layer.evaluation.evaluation.evaluator.elo_evaluator import Matches
+from intelligence_layer.evaluation.evaluation.evaluator.elo_evaluator import (
+    ComparisonEvaluation,
+    Matches,
+    MatchOutcome,
+)
 
 
 class PlayerScore(BaseModel):
