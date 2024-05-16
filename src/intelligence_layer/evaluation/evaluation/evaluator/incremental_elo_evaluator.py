@@ -44,11 +44,13 @@ Response: Answer """
     def __init__(
         self,
         model: ControlModel,
+        #already_evaluated_outputs: list[list[SuccessfulExampleOutput[SingleChunkQaOutput]]],
         tracer: Tracer = NoOpTracer(),
     ):
         super().__init__()
         self._model = model
         self.tracer = tracer
+        #self.already_evaluated_outputs = already_evaluated_outputs
         
     def do_incremental_evaluate(
         self,
@@ -58,6 +60,7 @@ Response: Answer """
     ) -> Matches:
         
         pairs = combinations(outputs, 2)
+        print('PAIRS', pairs)
         unique_pre_evaluated_runs: set[str] = set()
        
         for pre_run_output in already_evaluated_outputs:
@@ -65,8 +68,6 @@ Response: Answer """
                 unique_pre_evaluated_runs.add(current_output.run_id)
 
         
-        
-
         return Matches(
             comparison_evaluations=[
                 ComparisonEvaluation(
@@ -91,6 +92,10 @@ Response: Answer """
     ) -> MatchOutcome:
         grading_input = self._create_grading_input(first, second, example)
 
+        print('PLAYER A: ', first.run_id)
+        print('PLAYER B: ', second.run_id)
+        print('example_id: ', example.id)
+        print('______________________')
         return MatchOutcome(
             self.do_run(
                 grading_input,
