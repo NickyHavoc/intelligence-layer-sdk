@@ -58,7 +58,7 @@ class IncrementalEvaluationLogic(
                 [output for output in outputs if output.run_id in run_output_ids]
             )
 
-        return self.do_incremental_evaluate(example, outputs, already_evaluated_outputs)
+        return self.do_incremental_evaluate(example, list(outputs), already_evaluated_outputs)
 
     @abstractmethod
     def do_incremental_evaluate(
