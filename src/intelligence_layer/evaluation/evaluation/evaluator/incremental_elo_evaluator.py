@@ -58,16 +58,16 @@ Response: Answer """
         outputs: list[SuccessfulExampleOutput[SingleChunkQaOutput]],
         already_evaluated_outputs: list[list[SuccessfulExampleOutput[SingleChunkQaOutput]]],
     ) -> Matches:
-        
+
         pairs = combinations(outputs, 2)
-        print('PAIRS', pairs)
+
         unique_pre_evaluated_runs: set[str] = set()
        
         for pre_run_output in already_evaluated_outputs:
             for current_output in pre_run_output:
                 unique_pre_evaluated_runs.add(current_output.run_id)
 
-        
+
         return Matches(
             comparison_evaluations=[
                 ComparisonEvaluation(
